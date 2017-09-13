@@ -4,6 +4,7 @@ import com.google.common.base.CaseFormat;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.CreateFileFromTemplateDialog;
 import com.intellij.ide.actions.JavaCreateTemplateInPackageAction;
+import com.intellij.ide.fileTemplates.JavaTemplateUtil;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.DumbAware;
@@ -20,8 +21,10 @@ import com.intellij.psi.PsiNameHelper;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PlatformIcons;
-import java.util.Map;
+
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 
 import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.LOWER_UNDERSCORE;
@@ -30,32 +33,28 @@ import static com.google.common.base.CaseFormat.LOWER_UNDERSCORE;
  * @author drakeet
  */
 public class CreateItemFilesAction extends JavaCreateTemplateInPackageAction<PsiClass>
-    implements DumbAware {
+        implements DumbAware {
 
     private static final String ITEM_TEMPLATE_NAME = "Item";
+    private static final String ITEM_CALLBACK_TEMPLATE_NAME = "ItemCallback";
     private static final String ITEM_VIEW_PROVIDER_TEMPLATE_NAME = "ItemViewBinder";
-
-    public static final String ITEM_ITEM_AND_VIEW_BINDER = "Item & ItemViewBinder";
-    public static final String ONLY_ITEM_VIEW_BINDER = "Only ItemViewBinder";
-
 
     public CreateItemFilesAction() {
         super("", IdeBundle.message("action.create.new.class.description"),
-            PlatformIcons.CLASS_ICON, true);
+                PlatformIcons.CLASS_ICON, true);
     }
 
 
     @Override
     protected void buildDialog(final Project project, PsiDirectory directory, CreateFileFromTemplateDialog.Builder builder) {
         builder.setTitle("Create Item and ItemViewBinder")
-            .addKind(ITEM_ITEM_AND_VIEW_BINDER, PlatformIcons.CLASS_ICON, ITEM_ITEM_AND_VIEW_BINDER)
-            .addKind(ONLY_ITEM_VIEW_BINDER, PlatformIcons.CLASS_ICON, ONLY_ITEM_VIEW_BINDER);
+                .addKind(JavaTemplateUtil.INTERNAL_CLASS_TEMPLATE_NAME, PlatformIcons.CLASS_ICON, JavaTemplateUtil.INTERNAL_CLASS_TEMPLATE_NAME);
 
         builder.setValidator(new InputValidatorEx() {
             @Override
             public String getErrorText(String inputString) {
                 if (inputString.length() > 0 &&
-                    !PsiNameHelper.getInstance(project).isQualifiedName(inputString)) {
+                        !PsiNameHelper.getInstance(project).isQualifiedName(inputString)) {
                     return "This is not a valid Java qualified name";
                 }
                 return null;
@@ -71,7 +70,7 @@ public class CreateItemFilesAction extends JavaCreateTemplateInPackageAction<Psi
             @Override
             public boolean canClose(String inputString) {
                 return !StringUtil.isEmptyOrSpaces(inputString) &&
-                    getErrorText(inputString) == null;
+                        getErrorText(inputString) == null;
             }
         });
     }
@@ -89,29 +88,33 @@ public class CreateItemFilesAction extends JavaCreateTemplateInPackageAction<Psi
     }
 
 
-    @Override @SuppressWarnings("ConstantConditions")
+    @Override
+    @SuppressWarnings("ConstantConditions")
     protected String getActionName(PsiDirectory directory, String newName, String templateName) {
         return IdeBundle.message("progress.creating.class",
-            StringUtil.getQualifiedName(
-                JavaDirectoryService.getInstance().getPackage(directory).getQualifiedName(),
-                newName
-            )
+                StringUtil.getQualifiedName(
+                        JavaDirectoryService.getInstance().getPackage(directory).getQualifiedName(),
+                        newName
+                )
         );
     }
 
 
     @Override
     protected final PsiClass doCreate(PsiDirectory dir, String className, String templateName)
-        throws IncorrectOperationException {
+            throws IncorrectOperationException {
+        // ItemViewBinder.java
         PsiClass result = createClass(dir, className + "ViewBinder", ITEM_VIEW_PROVIDER_TEMPLATE_NAME);
-        if (templateName.equals(ITEM_ITEM_AND_VIEW_BINDER)) {
-            createClass(dir, className, ITEM_TEMPLATE_NAME);
-        }
-
         onProcessItemViewProvider(dir, className, result);
+
+        // Item.java
+        createClass(dir, className, ITEM_TEMPLATE_NAME);
+
+        // abstract ItemCallback.java
+        createClass(dir, className + "Callback", ITEM_CALLBACK_TEMPLATE_NAME);
+//        onProcessItemCallback(dir, className, result);
         return result;
     }
-
 
     private void onProcessItemViewProvider(final PsiDirectory dir, final String className, final PsiClass itemClass) {
         PsiFile file = itemClass.getContainingFile();
@@ -122,14 +125,15 @@ public class CreateItemFilesAction extends JavaCreateTemplateInPackageAction<Psi
         }
 
         new WriteCommandAction.Simple(itemClass.getProject()) {
-            @Override protected void run() throws Throwable {
+            @Override
+            protected void run() throws Throwable {
                 manager.doPostponedOperationsAndUnblockDocument(document);
                 document.setText(document.getText()
-                    .replace("MTI_CLASS", className)
-                    .replace("MTI_LOWER_NAME",
-                        CaseFormat.UPPER_CAMEL.to(LOWER_UNDERSCORE, className))
-                    .replace("MTI_NAME",
-                        CaseFormat.UPPER_CAMEL.to(LOWER_CAMEL, className)));
+                        .replace("MTI_CLASS", className)
+                        .replace("MTI_LOWER_NAME",
+                                CaseFormat.UPPER_CAMEL.to(LOWER_UNDERSCORE, className))
+                        .replace("MTI_NAME",
+                                CaseFormat.UPPER_CAMEL.to(LOWER_CAMEL, className)));
                 CodeStyleManager.getInstance(itemClass.getProject()).reformat(itemClass);
             }
         }.execute();
