@@ -12,6 +12,12 @@ import me.drakeet.multitype.ItemViewBinder;
 #parse("File Header.java")
 public class ${NAME} extends ItemViewBinder<MTI_CLASS, ViewHolder> {
 
+    private ${NAME}Callback mCallback;
+
+    public ${NAME}(${NAME}Callback callback) {
+        this.mCallback = callback;
+    }
+
     @NonNull @Override
     protected ViewHolder onCreateViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
         View root = inflater.inflate(R.layout.multi_type_item_MTI_LOWER_NAME, parent, false);
