@@ -1,6 +1,8 @@
 #if (${PACKAGE_NAME} && ${PACKAGE_NAME} != "")package ${PACKAGE_NAME};#end
 
+import android.support.v7.app.AppCompatActivity;
+
 #parse("File Header.java")
 public abstract class ${NAME} {
-
+    public abstract AppCompatActivity activity();
 }

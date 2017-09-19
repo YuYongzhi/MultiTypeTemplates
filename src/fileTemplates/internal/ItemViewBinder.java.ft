@@ -12,9 +12,9 @@ import me.drakeet.multitype.ItemViewBinder;
 #parse("File Header.java")
 public class ${NAME} extends ItemViewBinder<MTI_CLASS, ViewHolder> {
 
-    private ${NAME}Callback mCallback;
+    private MTI_CLASSCallback mCallback;
 
-    public ${NAME}(${NAME}Callback callback) {
+    public ${NAME}(MTI_CLASSCallback callback) {
         this.mCallback = callback;
     }
 
