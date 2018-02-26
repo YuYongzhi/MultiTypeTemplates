@@ -1,7 +1,7 @@
 <idea-plugin version="4">
     <id>>me.drakeet.plugin.multitype</id>
     <name>MultiTypeTemplates</name>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
     <vendor email="drakeet.me@gmail.com" url="https://drakeet.me">drakeet</vendor>
 
     <description><![CDATA[
