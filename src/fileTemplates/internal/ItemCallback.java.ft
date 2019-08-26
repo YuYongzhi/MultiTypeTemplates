@@ -1,8 +1,11 @@
 #if (${PACKAGE_NAME} && ${PACKAGE_NAME} != "")package ${PACKAGE_NAME};#end
 
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 #parse("File Header.java")
 public abstract class ${NAME} {
+
+    @NonNull
     public abstract AppCompatActivity activity();
 }
